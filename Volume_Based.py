@@ -35,6 +35,7 @@ e.set_inv(ori=re.split('-',inv_info)[0],
                 src=src_info)
 e.set(parc = 'aparc+aseg')
 
+#Annotation
 wholebrain_cortical_subcortical_mask = [
  'Left-Cerebral-White-Matter',
  'Left-Lateral-Ventricle',
