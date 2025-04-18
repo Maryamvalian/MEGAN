@@ -122,7 +122,7 @@ wholebrain_cortical_subcortical_mask = [
 
 
 
-
+#check experiment e
 # %%
 e.sessions
 
