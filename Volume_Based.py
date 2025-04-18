@@ -21,7 +21,7 @@ import mne
 import numpy
 import re
 
-#Jupytext Converted
+
 # %run experiment.py           #e is the experiment object
 
 # %%
