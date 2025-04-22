@@ -21,8 +21,8 @@ import mne
 import numpy
 import re
 
-
-# %run experiment.py           #e is the experiment object
+#Eelbrain Pipeline Setup
+# %run experiment.py           
 
 # %%
 inv_info = 'vec-3-dSPM-0'      #vector, or snr3, dspm, 0: superficial dipoles
