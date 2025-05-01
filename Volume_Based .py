@@ -40,3 +40,16 @@ word_aphasia = e.load_evoked_stc('aphasia', epoch='word', model='word % inflecte
        , src='vol-7', inv='vec-3-MNE-0', parc='aparc+aseg')
 
 # %%
+ds= combine(word_aphasia, word_young)
+             
+
+# %%
+t_stat_result = testnd.TTestIndependent(
+    'eeg', 'group', 'aphasia', 'young', match=None, data=ds,
+    pmin=0.05,  
+    tstart=0.100,  
+    tstop=0.600   
+)
+
+
+# %%
