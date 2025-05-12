@@ -1,4 +1,3 @@
-# +
 
 """
 Empty room
@@ -68,7 +67,7 @@ TEMPORAL = ('transversetemporal', 'superiortemporal', 'bankssts', 'middletempora
 OCCIPITAL = ('cuneus', 'pericalcarine', 'lingual', 'lateraloccipital')
 
 #ROOT = Path('dataset').expanduser()
-ROOT = Path('~/Data').expanduser()
+ROOT = Path('~/Data/Aphasia').expanduser()
 
 
 class Experiment(MneExperiment):
