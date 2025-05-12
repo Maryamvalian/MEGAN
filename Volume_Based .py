@@ -26,7 +26,7 @@ import re
 
 # %%
 epochs=e.load_epochs(epoch='word-real')
-epochs
+#epochs
 
 # %%
 #word_young = e.load_evoked_stc('young', epoch='word', model='word % inflected'
@@ -185,8 +185,8 @@ mask_name = [name for name in globals() if globals()[name] is mask][0]
 
 
 # %%
-res_cache_file = f'  tfce {mask_name}'
-res_cache_dir ="~/Code/MEGAN/Tests"
+res_cache_file = f'  tfce young'
+res_cache_dir ="~/Code/MEGAN/Tests/oneSample"
 
 session='words'
 group='young'
@@ -195,7 +195,7 @@ epochs= ['word-real','word-stem','word-inflected']
 
 conditions=['realinflected', 'realuninflected', 'pseudoinflected', 'pseudouninflected']
 # From Lexical column 
-# resolution 5 does not generate mask error											
+# resolution 5 does not generate mask error	(low resolution like vol-10 generates error for mask detection										
 e.set(epoch='word')
 stc_all = e.load_evoked_stc(
     subjects=group, 
@@ -212,31 +212,17 @@ for cond in conditions:
     
    
     data = stc_all.sub(f"(lexical == '{cond}')")
-   # data['srcm']=set_parc(data['srcm'],'aparc+aseg')
-    #data['ROI'] = data['srcm'].sub(source=mask)
 
+    res = testnd.Vector('srcm', match='subject', data=data, tfce=True, tstart=0.1, tstop=0.6)
     
+    save.pickle(res, res_cache_dir + cond + res_cache_file)
 
-    #res = testnd.Vector('srcm', match='subject', data=data, tfce=False, tstart=0.1, tstop=0.6)
-  #  save.pickle(res, res_cache_dir + condition + res_cache_file)
-
-  #  print(session + ': ' + condition + '\n' + str(res.find_clusters()))
+    print(session + ': ' + cond + '\n' + str(res.find_clusters()))
     
        
 
 # %%
-data['srcm']
-
-# %%
-res = testnd.Vector('srcm', match='subject', data=data, tfce=True, tstart=0.1, tstop=0.6)
-
-# %%
+#data['srcm']
 #plot.Butterfly(data['srcm'].norm('space'))
-
-# %%
-print(session + ': ' + cond + '\n' + str(res.find_clusters()))
-
-# %% [raw]
-# res?
 
 # %%
