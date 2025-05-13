@@ -25,7 +25,7 @@ import re
 # %run experiment.py           #e is the experiment object
 
 # %%
-epochs=e.load_epochs(epoch='word-real')
+epochs=e.load_epochs(epoch='word-real') #for one subject by default
 #epochs
 tstart=0.1
 tstop=0.6
@@ -220,26 +220,79 @@ for cond in conditions:
     
        
 
+# %% [markdown]
+# # Plot Signigficant Clusters
+
 # %%
 clus=res.find_clusters(0.05, maps=True)
-#res.plot_clusters()
+
+clus
+
+# %%
 #p = plot.TopoButterfly(res, t=0.13, head_radius=0.35)
 #p = plot.TopoButterfly(res.tfce_map, t=0.13, head_radius=0.35)
-#plot.brain.cluster(res)
-#clus
-p = plot.TopoButterfly(clus[0, 'cluster'], t=0.13, head_radius=0.35)
+res.masked_difference()
+#p = plot.TopoButterfly(clus[0], t=0.30, head_radius=0.35).norm('space')
+#plot.GlassBrain.butterfly(clus[0,'cluster'], cmap='Reds')
+#plot.GlassBrain.butterfly(res, cmap='Reds')
+plot.GlassBrain(res.masked_difference().sub(time=0.13), cmap='Reds')
 
 # %% [markdown]
 # # Paired Tests
 # ## Inside 
 
 # %%
+e.load_events()
+
+# %%
+stc_all.head()
+
+# %% [markdown]
+# real vs pseudo
+# real: inf vs real un inf
+# psuedo: inf vs un-inf
+#
+
+# %%
 contrast = ['realinflected-pseudouninflected']
 cond1, cond2 = contrast[0].split('-')
 
-real_infl_stc = stc_all.sub(f"(lexical == '{cond1}')")
-pseudo_infl_stc = stc_all.sub(f"(lexical == '{cond2}')")
+#real_infl_stc = stc_all.sub(f"(lexical == '{cond1}')")
+#pseudo_infl_stc = stc_all.sub(f"(lexical == '{cond2}')")
+# both=stc_all.sub(f"(lexical == '{cond2}')|(lexical == '{cond1}')")
+"""
+diff_real_inf = table.difference(
+        'srcm', 
+        'subject',
+        data=stc_all.sub(f"wordType=='{cond2}'"))
+diff_pseudo_inf = table.difference(
+        'srcm', 
+        'subject',
+        data=stc_all.sub(f"wordType=='{cond1}'"))
 
-res = testnd.VectorDifferenceRelated(real_infl_stc,pseudo_infl_stc, match='subject', data=data, tfce=True, tstart=tstart, tstop=tstop)
+data_combined=combine([diff_real_inf, diff_pseudo_inf], incomplete='drop')
+"""
+
+
+res = testnd.VectorDifferenceRelated('srcm', 'lexical', cond1, cond2, match='subject', data=stc_all, tfce=True, tstart=tstart, tstop=tstop)
 
 # %%
+diff = res.masked_difference()
+p = plot.Butterfly(diff.norm('space'), color='k')
+times = [0.13, 0.26, 0.35, 0.55]
+for t in times:
+    p.add_vline(t)
+
+# %%
+for t in times:
+    p = plot.GlassBrain(diff.sub(time=t), cmap='Reds', title=f"{t*1000:.0f} ms")
+
+# %%
+
+res = testnd.VectorDifferenceRelated('srcm', 'word', 'real', 'pseudo', sub="inflected == 'uninflected'", match='subject', data=stc_all, tfce=True, tstart=tstart, tstop=tstop)
+
+
+# %%
+
+res = testnd.VectorDifferenceRelated('srcm', 'word % inflected', ('real', 'inflected'), ('pseudo', 'uninflected'), match='subject', data=stc_all, tfce=True, tstart=tstart, tstop=tstop)
+
