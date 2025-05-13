@@ -224,68 +224,92 @@ for cond in conditions:
 # # Plot Signigficant Clusters
 
 # %%
+#Pseudo-Uninflected
 clus=res.find_clusters(0.05, maps=True)
-
 clus
 
 # %%
-#p = plot.TopoButterfly(res, t=0.13, head_radius=0.35)
-#p = plot.TopoButterfly(res.tfce_map, t=0.13, head_radius=0.35)
-res.masked_difference()
-#p = plot.TopoButterfly(clus[0], t=0.30, head_radius=0.35).norm('space')
-#plot.GlassBrain.butterfly(clus[0,'cluster'], cmap='Reds')
-#plot.GlassBrain.butterfly(res, cmap='Reds')
-plot.GlassBrain(res.masked_difference().sub(time=0.13), cmap='Reds')
+#Plot first cluster of pseudo-inflected
+#0	1	532	ctx-lh-inferiortemporal	0.1	0.6	0.5	0.0001	***
+#plot.GlassBrain.butterfly(clus[0,'cluster'])
+
+
+# %%
+plot.GlassBrain.butterfly(res)
+
+# %%
+#res.masked_difference()
+
+plot.GlassBrain(res.masked_difference().sub(time=0.55))
 
 # %% [markdown]
 # # Paired Tests
-# ## Inside 
+# ## Inside Young Group
 
 # %%
-e.load_events()
-
-# %%
-stc_all.head()
+#e.load_events()
+#stc_all.head()
 
 # %% [markdown]
-# real vs pseudo
-# real: inf vs real un inf
-# psuedo: inf vs un-inf
+# ### real Vs. pseudo
+#
 #
 
 # %%
-contrast = ['realinflected-pseudouninflected']
+contrast = ['real-pseudo']
 cond1, cond2 = contrast[0].split('-')
 
-#real_infl_stc = stc_all.sub(f"(lexical == '{cond1}')")
-#pseudo_infl_stc = stc_all.sub(f"(lexical == '{cond2}')")
-# both=stc_all.sub(f"(lexical == '{cond2}')|(lexical == '{cond1}')")
-"""
-diff_real_inf = table.difference(
-        'srcm', 
-        'subject',
-        data=stc_all.sub(f"wordType=='{cond2}'"))
-diff_pseudo_inf = table.difference(
-        'srcm', 
-        'subject',
-        data=stc_all.sub(f"wordType=='{cond1}'"))
+#for table.difference we can't do it inline with testnd
 
-data_combined=combine([diff_real_inf, diff_pseudo_inf], incomplete='drop')
-"""
+res = testnd.VectorDifferenceRelated('srcm', 'word', cond1, cond2, match='subject', data=stc_all, tfce=True, tstart=tstart, tstop=tstop)
 
+# %%
+diff = res.masked_difference()
+p = plot.Butterfly(diff.norm('space'), color='k')
+times = [0.45, 0.48, 0.52, 0.56]
+for t in times:
+    p.add_vline(t)
+for t in times:
+    f = plot.GlassBrain(diff.sub(time=t), title=f"Real Vs. Pseudo, {t*1000:.0f} ms")    
+
+# %% [markdown]
+# ### real-inf Vs. real-uninf
+#
+
+# %%
+contrast = ['realinflected-realuninflected']
+cond1, cond2 = contrast[0].split('-')
+
+#for table.difference we can't do it inline with testnd
 
 res = testnd.VectorDifferenceRelated('srcm', 'lexical', cond1, cond2, match='subject', data=stc_all, tfce=True, tstart=tstart, tstop=tstop)
 
 # %%
 diff = res.masked_difference()
 p = plot.Butterfly(diff.norm('space'), color='k')
-times = [0.13, 0.26, 0.35, 0.55]
-for t in times:
-    p.add_vline(t)
+times = [0.45, 0.48, 0.52, 0.56]
+#for t in times:
+#    p.add_vline(t)
+#    f = plot.GlassBrain(diff.sub(time=t), title=f"Real Vs. Pseudo, {t*1000:.0f} ms")  
+
+# %% [markdown]
+# ### psuedo-inf Vs. pseudo-uninf
 
 # %%
+contrast = ['pseudoinflected-pseudouninflected']
+cond1, cond2 = contrast[0].split('-')
+
+#for table.difference we can't do it inline with testnd
+
+res = testnd.VectorDifferenceRelated('srcm', 'lexical', cond1, cond2, match='subject', data=stc_all, tfce=True, tstart=tstart, tstop=tstop)
+
+# %%
+diff = res.masked_difference()
+p = plot.Butterfly(diff.norm('space'), color='k')
+times = [ 0.36, 0.42]
 for t in times:
-    p = plot.GlassBrain(diff.sub(time=t), cmap='Reds', title=f"{t*1000:.0f} ms")
+    p.add_vline(t)
+    f = plot.GlassBrain(diff.sub(time=t), title=f"Pseudo-inflected Vs. Pseudo-uninflected ,{t*1000:.0f} ms")
 
 # %%
 
