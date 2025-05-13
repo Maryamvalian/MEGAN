@@ -82,8 +82,7 @@ class Experiment(MneExperiment):
 
     defaults = {
         'raw': 'n-ica',
-        #Mary 
-        'group': 'young'
+       
     }
 
     raw = {

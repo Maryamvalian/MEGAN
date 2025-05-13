@@ -27,26 +27,22 @@ import re
 # %%
 epochs=e.load_epochs(epoch='word-real')
 #epochs
+tstart=0.1
+tstop=0.6
 
-# %%
+# %% jupyter={"source_hidden": true}
 #word_young = e.load_evoked_stc('young', epoch='word', model='word % inflected'
 #       , src='vol-5', inv='vec-3-MNE-0', parc='aparc+aseg')
-
-# %%
-#plot.GlassBrain.butterfly(word_young['srcm'].mean('case'), cmap='Reds')
-
-# %%
-#word_old = e.load_evoked_stc('old', epoch='word', model='word % inflected'
-#       , src='vol-5', inv='vec-3-MNE-0', parc='aparc+aseg')
-
-# %%
 #word_aphasia = e.load_evoked_stc('aphasia', epoch='word', model='word % inflected'
 #       , src='vol-5', inv='vec-3-MNE-0', parc='aparc+aseg')
+#word_old = e.load_evoked_stc('old', epoch='word', model='word % inflected'
+#       , src='vol-5', inv='vec-3-MNE-0', parc='aparc+aseg')
+#plot.GlassBrain.butterfly(word_young['srcm'].mean('case'), cmap='Reds')
 
 # %% [markdown]
 # ## Mask define
 
-# %%
+# %% jupyter={"source_hidden": true}
 wholebrain_cortical_subcortical_mask = [
  'Left-Cerebral-White-Matter',
  'Left-Lateral-Ventricle',
@@ -194,6 +190,7 @@ epochs= ['word-real','word-stem','word-inflected']
 #epoch word-real contains both realinflected and realuninflected
 
 conditions=['realinflected', 'realuninflected', 'pseudoinflected', 'pseudouninflected']
+
 # From Lexical column 
 # resolution 5 does not generate mask error	(low resolution like vol-10 generates error for mask detection										
 e.set(epoch='word')
@@ -207,22 +204,42 @@ stc_all = e.load_evoked_stc(
     parc='aparc+aseg',
 
 )
+#data['srcm']
+#plot.Butterfly(data['srcm'].norm('space'))
 
 for cond in conditions:
     
    
     data = stc_all.sub(f"(lexical == '{cond}')")
-
-    res = testnd.Vector('srcm', match='subject', data=data, tfce=True, tstart=0.1, tstop=0.6)
+    res = testnd.Vector('srcm', match='subject', data=data, tfce=True, tstart=tstart, tstop=tstop)
+    
+    
     
     save.pickle(res, res_cache_dir + cond + res_cache_file)
-
     print(session + ': ' + cond + '\n' + str(res.find_clusters()))
     
        
 
 # %%
-#data['srcm']
-#plot.Butterfly(data['srcm'].norm('space'))
+clus=res.find_clusters(0.05, maps=True)
+#res.plot_clusters()
+#p = plot.TopoButterfly(res, t=0.13, head_radius=0.35)
+#p = plot.TopoButterfly(res.tfce_map, t=0.13, head_radius=0.35)
+#plot.brain.cluster(res)
+#clus
+p = plot.TopoButterfly(clus[0, 'cluster'], t=0.13, head_radius=0.35)
+
+# %% [markdown]
+# # Paired Tests
+# ## Inside 
+
+# %%
+contrast = ['realinflected-pseudouninflected']
+cond1, cond2 = contrast[0].split('-')
+
+real_infl_stc = stc_all.sub(f"(lexical == '{cond1}')")
+pseudo_infl_stc = stc_all.sub(f"(lexical == '{cond2}')")
+
+res = testnd.VectorDifferenceRelated(real_infl_stc,pseudo_infl_stc, match='subject', data=data, tfce=True, tstart=tstart, tstop=tstop)
 
 # %%
