@@ -189,7 +189,7 @@ group='young'
 epochs= ['word-real','word-stem','word-inflected']
 #epoch word-real contains both realinflected and realuninflected
 
-conditions=['realinflected', 'realuninflected', 'pseudoinflected', 'pseudouninflected']
+conditions=['pseudouninflected', 'realuninflected', 'pseudoinflected', 'realinflected']
 
 # From Lexical column 
 # resolution 5 does not generate mask error	(low resolution like vol-10 generates error for mask detection										
@@ -224,7 +224,7 @@ for cond in conditions:
 # # Plot Signigficant Clusters
 
 # %%
-#Pseudo-Uninflected
+#real-inf
 clus=res.find_clusters(0.05, maps=True)
 clus
 
@@ -240,7 +240,7 @@ plot.GlassBrain.butterfly(res)
 # %%
 #res.masked_difference()
 
-plot.GlassBrain(res.masked_difference().sub(time=0.55))
+plot.GlassBrain(res.masked_difference().sub(time=0.55),title=f"{cond}, 550 ms")
 
 # %% [markdown]
 # # Paired Tests
@@ -320,3 +320,7 @@ res = testnd.VectorDifferenceRelated('srcm', 'word', 'real', 'pseudo', sub="infl
 
 res = testnd.VectorDifferenceRelated('srcm', 'word % inflected', ('real', 'inflected'), ('pseudo', 'uninflected'), match='subject', data=stc_all, tfce=True, tstart=tstart, tstop=tstop)
 
+
+# %%
+
+# %%
