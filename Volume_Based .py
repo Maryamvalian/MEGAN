@@ -282,15 +282,15 @@ cond1, cond2 = contrast[0].split('-')
 
 #for table.difference we can't do it inline with testnd
 
-res = testnd.VectorDifferenceRelated('srcm', 'lexical', cond1, cond2, match='subject', data=stc_all, tfce=True, tstart=tstart, tstop=tstop)
+res = testnd.VectorDifferenceRelated('srcm', 'lexical', cond1, cond2, match='subject', data=stc_all, tfce=True)
 
 # %%
 diff = res.masked_difference()
 p = plot.Butterfly(diff.norm('space'), color='k')
-times = [0.45, 0.48, 0.52, 0.56]
-#for t in times:
-#    p.add_vline(t)
-#    f = plot.GlassBrain(diff.sub(time=t), title=f"Real Vs. Pseudo, {t*1000:.0f} ms")  
+times = [0.76]
+for t in times:
+    p.add_vline(t)
+    f = plot.GlassBrain(diff.sub(time=t), title=f"{contrast}, {t*1000:.0f} ms")  
 
 # %% [markdown]
 # ### psuedo-inf Vs. pseudo-uninf
@@ -306,7 +306,7 @@ res = testnd.VectorDifferenceRelated('srcm', 'lexical', cond1, cond2, match='sub
 # %%
 diff = res.masked_difference()
 p = plot.Butterfly(diff.norm('space'), color='k')
-times = [ 0.36, 0.42]
+times = [ 0.29,0.36, 0.42,0.58]
 for t in times:
     p.add_vline(t)
     f = plot.GlassBrain(diff.sub(time=t), title=f"Pseudo-inflected Vs. Pseudo-uninflected ,{t*1000:.0f} ms")
