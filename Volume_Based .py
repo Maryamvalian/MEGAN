@@ -30,7 +30,8 @@ epochs=e.load_epochs(epoch='word-real') #for one subject by default
 tstart=0.1
 tstop=0.6
 
-# %% jupyter={"source_hidden": true}
+
+# %%
 #word_young = e.load_evoked_stc('young', epoch='word', model='word % inflected'
 #       , src='vol-5', inv='vec-3-MNE-0', parc='aparc+aseg')
 #word_aphasia = e.load_evoked_stc('aphasia', epoch='word', model='word % inflected'
@@ -235,7 +236,8 @@ clus
 
 
 # %%
-plot.GlassBrain.butterfly(res)
+#plot.GlassBrain.butterfly(res)
+#interactive (run from terminal)
 
 # %%
 #res.masked_difference()
@@ -270,7 +272,7 @@ times = [0.45, 0.48, 0.52, 0.56]
 for t in times:
     p.add_vline(t)
 for t in times:
-    f = plot.GlassBrain(diff.sub(time=t), title=f"Real Vs. Pseudo, {t*1000:.0f} ms")    
+    f = plot.GlassBrain(diff.sub(time=t), title=f"{group},{contrast}, {t*1000:.0f} ms")    
 
 # %% [markdown]
 # ### real-inf Vs. real-uninf
@@ -290,7 +292,7 @@ p = plot.Butterfly(diff.norm('space'), color='k')
 times = [0.76]
 for t in times:
     p.add_vline(t)
-    f = plot.GlassBrain(diff.sub(time=t), title=f"{contrast}, {t*1000:.0f} ms")  
+    f = plot.GlassBrain(diff.sub(time=t), title=f"{group}{contrast}, {t*1000:.0f} ms")  
 
 # %% [markdown]
 # ### psuedo-inf Vs. pseudo-uninf
@@ -312,15 +314,167 @@ for t in times:
     f = plot.GlassBrain(diff.sub(time=t), title=f"Pseudo-inflected Vs. Pseudo-uninflected ,{t*1000:.0f} ms")
 
 # %%
+#res = testnd.VectorDifferenceRelated('srcm', 'word % inflected', ('real', 'inflected'), ('pseudo', 'uninflected'), match='subject', data=stc_all, tfce=True, tstart=tstart, tstop=tstop)
+#res = testnd.VectorDifferenceRelated('srcm', 'word', 'real', 'pseudo', sub="inflected == 'uninflected'", match='subject', data=stc_all, tfce=True, tstart=tstart, tstop=tstop)
 
-res = testnd.VectorDifferenceRelated('srcm', 'word', 'real', 'pseudo', sub="inflected == 'uninflected'", match='subject', data=stc_all, tfce=True, tstart=tstart, tstop=tstop)
+
+# %% [markdown]
+# ## Inside Aphasia Group
 
 
 # %%
+group='aphasia'
 
-res = testnd.VectorDifferenceRelated('srcm', 'word % inflected', ('real', 'inflected'), ('pseudo', 'uninflected'), match='subject', data=stc_all, tfce=True, tstart=tstart, tstop=tstop)
+e.set(epoch='word')
+aph_stc_all = e.load_evoked_stc(
+    subjects=group, 
+    baseline=False, 
+    cov='emptyroom', 
+    model='word % inflected',
+    src='vol-10',
+    inv='vec-3-MNE-0',
+    parc='aparc+aseg',
+
+)
+
+
+# %% [markdown]
+# ### Real Vs. Pseudo
+
+# %%
+contrast = ['real-pseudo']
+cond1, cond2 = contrast[0].split('-')
+
+res = testnd.VectorDifferenceRelated('srcm', 'word', cond1, cond2, match='subject', data=aph_stc_all, tfce=True,tstart=tstart, tstop=tstop)
+
 
 
 # %%
+diff= res.masked_difference()
+p = plot.Butterfly(diff.norm('space'), color='k')
+#times = [0.29, 0.36, 0.42, 0.58]
+#for t in times:
+#    p.add_vline(t)
+#for t in times:
+#    f = plot.GlassBrain(diff.sub(time=t), title=f"Aphasia group, {contrast}, {t*1000:.0f} ms")
+
+# %% [markdown]
+# ### pseudo-inf VS pseudo-uninf
+
+# %%
+contrast = ['pseudoinflected-pseudouninflected']
+cond1, cond2 = contrast[0].split('-')
+
+res = testnd.VectorDifferenceRelated('srcm', 'lexical', cond1, cond2, match='subject', data=aph_stc_all, tfce=True)
+
+#tstart=tstart, tstop=tstop
+
+# %%
+diff = res.masked_difference()
+p = plot.Butterfly(diff.norm('space'), color='k', title=f"Aphasia,{contrast}")
+#times = [ 0.29,0.36, 0.42,0.58]
+#for t in times:
+#    p.add_vline(t)
+#    f = plot.GlassBrain(diff.sub(time=t), title=f"Aphasia,{contrast} ,{t*1000:.0f} ms")
+
+# %% [markdown]
+# ### real-inf Vs. Real-uninf
+
+# %%
+contrast = ['realinflected-realuninflected']
+cond1, cond2 = contrast[0].split('-')
+
+#for table.difference we can't do it inline with testnd
+
+res = testnd.VectorDifferenceRelated('srcm', 'lexical', cond1, cond2, match='subject', data=aph_stc_all, tfce=True)
+
+# %%
+diff = res.masked_difference()
+p = plot.Butterfly(diff.norm('space'), color='k', title=f"Aphasia,{contrast}")
+#times = [ 0.29,0.36, 0.42,0.58]
+
+# %% [markdown]
+# ## Inside Old Group
+
+# %%
+group='old'
+
+e.set(epoch='word')
+old_stc_all = e.load_evoked_stc(
+    subjects=group, 
+    baseline=False, 
+    cov='emptyroom', 
+    model='word % inflected',
+    src='vol-10',
+    inv='vec-3-MNE-0',
+    parc='aparc+aseg',
+
+)
+
+# %%
+#plot.GlassBrain.butterfly(old_stc_all['srcm'].mean('case'))
+
+# %% [markdown]
+# ### Real Vs. Pseudo
+
+# %%
+#Paired test
+contrast = ['real-pseudo']
+cond1, cond2 = contrast[0].split('-')
+
+res = testnd.VectorDifferenceRelated('srcm', 'word', cond1, cond2, match='subject', data=old_stc_all, tfce=True, tstart=tstart, tstop=tstop)
+
+
+
+# %%
+#plot diff
+diff = res.masked_difference()
+p = plot.Butterfly(diff.norm('space'), color='k')
+#times = [0.29, 0.36, 0.42, 0.58]
+#for t in times:
+#    p.add_vline(t)
+#for t in times:
+#    f = plot.GlassBrain(diff.sub(time=t), title=f"{group} group, {contrast}, {t*1000:.0f} ms")
+
+# %% [markdown]
+# ### Pseudo : inf Vs Uninf
+
+# %%
+contrast = ['pseudoinflected-pseudouninflected']
+cond1, cond2 = contrast[0].split('-')
+
+res = testnd.VectorDifferenceRelated('srcm', 'lexical', cond1, cond2, match='subject', data=old_stc_all, tfce=True)
+
+#tstart=tstart, tstop=tstop
+
+# %%
+diff = res.masked_difference()
+p = plot.Butterfly(diff.norm('space'), color='k', title=f"{group},{contrast}")
+#times = [ 0.29,0.36, 0.42,0.58]
+#for t in times:
+#    p.add_vline(t)
+#    f = plot.GlassBrain(diff.sub(time=t), title=f{group},{contrast} ,{t*1000:.0f} ms")
+
+# %% [markdown]
+# ### Real: inf Vs Uninf
+
+# %%
+#test
+contrast = ['realinflected-realuninflected']
+cond1, cond2 = contrast[0].split('-')
+
+#for table.difference we can't do it inline with testnd
+
+res = testnd.VectorDifferenceRelated('srcm', 'lexical', cond1, cond2, match='subject', data=old_stc_all, tfce=True)
+
+# %%
+#plot diff
+diff = res.masked_difference()
+p = plot.Butterfly(diff.norm('space'), color='k',title=f"{group},{contrast}")
+times = [0.29, 0.36, 0.42, 0.58]
+#for t in times:
+#    p.add_vline(t)
+#for t in times:
+#    f = plot.GlassBrain(diff.sub(time=t), title=f"{group} group, {contrast}, {t*1000:.0f} ms")
 
 # %%
