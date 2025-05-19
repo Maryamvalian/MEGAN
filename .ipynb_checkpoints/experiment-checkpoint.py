@@ -89,6 +89,7 @@ class Experiment(MneExperiment):
         'tsss': RawMaxwell('raw', st_duration=10., ignore_ref=True, st_correlation=.9, st_only=True),
         # original pipeline !! ICA without filtering
         '1-40': RawFilter('tsss', 1, 40, **FILTER_KWARGS, cache=False),
+        '1-8': RawFilter('tsss', 1, 8, **FILTER_KWARGS, cache=False),
         'ica': RawICA('tsss', ('words', 'sentences'), n_components=0.99, random_state=0),
         'ica1-40': RawFilter('ica', 1, 40, **FILTER_KWARGS, cache=False),
         'ica1-20': RawFilter('ica', 1, 20, **FILTER_KWARGS, cache=False),
