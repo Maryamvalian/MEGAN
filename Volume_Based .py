@@ -240,8 +240,7 @@ clus
 #interactive (run from terminal)
 
 # %%
-#res.masked_difference()
-
+#Diff real-inflected
 plot.GlassBrain(res.masked_difference().sub(time=0.55),title=f"{cond}, 550 ms")
 
 # %% [markdown]
@@ -476,5 +475,11 @@ times = [0.29, 0.36, 0.42, 0.58]
 #    p.add_vline(t)
 #for t in times:
 #    f = plot.GlassBrain(diff.sub(time=t), title=f"{group} group, {contrast}, {t*1000:.0f} ms")
+
+# %%
+#TODO
+
+#Analysis for Control Group: Old+Younge
+#Find significant ROI then compare between groups 
 
 # %%
