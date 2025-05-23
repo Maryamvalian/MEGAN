@@ -35,6 +35,9 @@ raw.resample(100, npad="auto")
 #raw.plot()
 
 # %%
+# !jupytext --to py NCRF_volumesource.ipynb
+
+# %%
 time_size = raw.n_times / raw.info['sfreq']
 print("Duration:", time_size, "seconds")
 
@@ -95,8 +98,16 @@ s = plot.LineStack(eelbrain.combine([stim1, stim2]))
 # %%
 subject = "fsaverage"  # Use the standard FreeSurfer template
 subjects_dir = "~/Data/Aphasia/mri/"
+#Surface_Based:
+#src = mne.setup_source_space(subject, spacing='ico4', add_dist=False, subjects_dir=subjects_dir)
 
-src = mne.setup_source_space(subject, spacing='ico4', add_dist=False, subjects_dir=subjects_dir)
+#VOLUME BASED:
+src = mne.setup_volume_source_space(
+    subject=subject,
+    pos=7.0,  # spacing in mm between grid points (adjustable, e.g., 5.0 or 10.0)
+    mri='T1.mgz',  # typically 'T1.mgz' in the subject's MRI folder
+    subjects_dir=subjects_dir
+)
 print(src)
 
 #BEM
@@ -104,6 +115,7 @@ print(src)
 conductivity = (0.3, 0.006, 0.3)  # for three layers
 #define geometry of head and conductivity
 
+#BEM IS SAME for both Volume and surface!
 BEM_model = mne.make_bem_model(
     subject="fsaverage", ico=4, conductivity=conductivity, subjects_dir=subjects_dir
 )
@@ -119,7 +131,7 @@ print(trans)
 
 info=raw.info
 fwd = mne.make_forward_solution(info, trans=trans, src=src, bem=bem, meg=True, eeg=False, mindist=5.0, n_jobs=1)
-#print(fwd)
+print(fwd)
 lf = fwd['sol']['data']
 lf
 
@@ -136,6 +148,11 @@ noise_cov
 # ## NCRF Estimation
 
 # %%
+# %load_ext autoreload
+# %autoreload 2
+
+import eelbrain
+from ncrf import fit_ncrf
 
 args=(meg, [stim1, stim2], lf, noise_cov, 0, 0.8)
 
@@ -147,6 +164,6 @@ model = fit_ncrf(*args, **kwargs)
 
 # %%
 #TODO:
-#make a pull request for Collection.abc.Sequence
 #add all predictors to model
 # Check ContinuousEpoch  on github repository 
+#e.load_fwd(subject='') Use eelbrain pipeline to prepare parameters for ncrf
