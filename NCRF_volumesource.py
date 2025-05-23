@@ -35,9 +35,6 @@ raw.resample(100, npad="auto")
 #raw.plot()
 
 # %%
-# !jupytext --to py NCRF_volumesource.ipynb
-
-# %%
 time_size = raw.n_times / raw.info['sfreq']
 print("Duration:", time_size, "seconds")
 
@@ -70,7 +67,15 @@ event_dict = {
 #epochs
 events = mne.find_events(raw, stim_channel='STI 014')
 epochs = mne.Epochs(raw, events, event_id=event_dict, tmin=-0.2, tmax=0.7, preload=True)
-meg=epochs.copy().pick_types(meg='mag')
+
+picks = mne.pick_types(epochs.info, meg='mag', eeg=False, stim=False, eog=False, exclude='bads')
+data = epochs.get_data()[:, picks, :]  # shape = (n_trials, n_sensors, n_times)
+
+# Create Eelbrain NDVar
+sensor_dim = load.fiff.sensor_dim(epochs.info, picks=picks)
+time = eelbrain.UTS(epochs.tmin, 1 / epochs.info['sfreq'], data.shape[2])
+case_dim = eelbrain.Case(data.shape[0])
+meg = eelbrain.NDVar(data, dims=(case_dim, sensor_dim, time))
 
 # %%
 len(time)
@@ -79,37 +84,56 @@ len(time)
 #TODO: ADD ALL predictors for all event types,set all values to 1. 
 #Q:to make it both negative and positive (more similar to brain signals)  is'nt it beter to keep -1??
 #  Make Stimulus Impulses 
-stim1 = np.zeros(len(time), dtype=np.double)
-stim1[events[:, 0]] = 1.
 
-# -1 impulses to distinguish Word-real(real-inf or real-uninf) from pesudo  
-stim2 = stim1.copy()
-stim2[events[np.where(events[:, 2] == 162), 0]] = -1.
-stim1 = eelbrain.NDVar(stim1, time)
-stim2 = eelbrain.NDVar(stim2, time)
+event_ids = epochs.events[:, 2]
+n_trials, n_times = data.shape[0], data.shape[2]
 
+
+stim1_array = np.zeros((n_trials, n_times))
+stim2_array = np.zeros((n_trials, n_times))
+stim3_array = np.zeros((n_trials, n_times))
+
+
+#stim1_array[:, 0] = 1.  
+stim1_array[event_ids == 162, 0] = 1.           #real
+stim2_array[event_ids == 163, 0] = 1.           #stem
+stim3_array[event_ids == 164, 0] = 1.           #uinflected
+stim4_array[event_ids == 165, 0] = 1.           #inf
+
+
+stim1 = eelbrain.NDVar(stim1_array, dims=(case_dim, time))
+stim2 = eelbrain.NDVar(stim2_array, dims=(case_dim, time))
+stim3 = eelbrain.NDVar(stim1_array, dims=(case_dim, time))
+stim4 = eelbrain.NDVar(stim1_array, dims=(case_dim, time))
 # visualize the stimulus
-s = plot.LineStack(eelbrain.combine([stim1, stim2]))
+#s = plot.LineStack(eelbrain.combine([stim1, stim2]))
 # all 1 but for diferent predictor : 4 predictor
 
 # %% [markdown]
 # ## Forward Model
 
 # %%
-subject = "fsaverage"  # Use the standard FreeSurfer template
-subjects_dir = "~/Data/Aphasia/mri/"
+import os
+subjects_dir = os.path.expanduser('~/Data/Aphasia/mri')
+subject = "fsaverage"  
 #Surface_Based:
 #src = mne.setup_source_space(subject, spacing='ico4', add_dist=False, subjects_dir=subjects_dir)
 
 #VOLUME BASED:
 src = mne.setup_volume_source_space(
     subject=subject,
-    pos=7.0,  # spacing in mm between grid points (adjustable, e.g., 5.0 or 10.0)
-    mri='T1.mgz',  # typically 'T1.mgz' in the subject's MRI folder
+    pos=7.0,  # vol-7 ,vol-5 or vol-10
+    mri='T1.mgz',  
     subjects_dir=subjects_dir
 )
 print(src)
 
+#save Source 
+mne.write_source_spaces(
+    os.path.join(subjects_dir, 'fsaverage', 'bem', 'fsaverage-vol-7-src.fif'),
+    src,
+    overwrite=True
+)
 #BEM
 
 conductivity = (0.3, 0.006, 0.3)  # for three layers
@@ -125,24 +149,47 @@ bem = mne.make_bem_solution(BEM_model)
 #CO-registration
 
 trans = mne.read_trans("~/Data/Aphasia/meg/R0240/R0240-trans.fif")
-print(trans)
+print(f"TRANS={trans}")
+
+
+
+
+
+
+# %%
 
 #MAKE FORWARD MODEL
-
 info=raw.info
 fwd = mne.make_forward_solution(info, trans=trans, src=src, bem=bem, meg=True, eeg=False, mindist=5.0, n_jobs=1)
 print(fwd)
-lf = fwd['sol']['data']
-lf
+#lf = fwd['sol']['data']
+
+lf = eelbrain.load.fiff.forward_operator(
+    fwd,  
+    src='vol-7',  # or 'ico-4' 
+    subjects_dir=subjects_dir,
+    sysname='neuromag306mag',
+    connectivity=False,              #avoid mismatch chnl name
+    parc='aparc+aseg'
+)
 
 
 # %% [markdown]
 # ## Nois cov
 
 # %%
-evoked=meg["word/real"].average()
-noise_cov = mne.make_ad_hoc_cov(evoked.info)
-noise_cov
+# empty-room data
+raw_empty = mne.io.read_raw_fif('~/Data/Aphasia/meg/R0240/R0240_emptyroom-raw.fif', preload=True)
+
+
+raw_empty.notch_filter(np.arange(60, 181, 60), fir_design='firwin')
+raw_empty.filter(1., 8., fir_design='firwin')
+raw_empty.resample(100, npad="auto")
+
+
+noise_cov = mne.compute_raw_covariance(raw_empty, method='shrunk', rank=None)
+
+
 
 # %% [markdown]
 # ## NCRF Estimation
@@ -158,9 +205,12 @@ args=(meg, [stim1, stim2], lf, noise_cov, 0, 0.8)
 
 mu = 0.0002
 kwargs = {'normalize': 'l1', 'in_place': False, 'mu': mu,
-          'verbose': True, 'n_iter': 5, 'n_iterc': 10, 'n_iterf': 100}
+          'verbose': True, 'n_iter': 5, 'n_iterc': 10, 'n_iterf': 50}   #n_iterf=100
 
 model = fit_ncrf(*args, **kwargs)
+
+# %%
+eelbrain.save.pickle(model, 'model_2sim_n100.pickle')
 
 # %%
 #TODO:
